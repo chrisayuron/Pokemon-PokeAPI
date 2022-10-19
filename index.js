@@ -1,44 +1,48 @@
-const pokeAPI='https://pokeapi.co/api/v2/pokemon/'
+const pokeAPI = 'https://pokeapi.co/api/v2/pokemon/'
 
-function buscar(){
-let nombre=document.getElementById('nombre').value
+async function buscar() {
+    let nombre = document.getElementById('nombre').value
+    nombre=nombre.toLowerCase()
+    const response = await fetch(`${pokeAPI}${nombre}`)
+    document.getElementById('nombre').value=''
+    if (response.status === 404) {
+        document.querySelector('.error').textContent = 'No encontrado'
+    } else {
+        const json = await response.json()
 
-fetch(`${pokeAPI}${nombre}`)
-.then(response=>{
-    if(response.status===404){
-        document.querySelector('.error').textContent='No encontrado'
-        // document.getElementById('iniciar').disabled=false
-    } else{
-        return response.json()
+        const img = document.querySelector('.fotos')
+        img.innerHTML =`<img class=foto src=${json.sprites.front_default}>` 
+        
+        const datos = document.querySelector('.stats')
+        datos.innerHTML += `<h3>Estadísticas</h3>`
+        for (data of json.stats) {
+            datos.innerHTML += `<p>${data.stat.name}: ${data.base_stat} </p>`
+        }
+        datos.innerHTML += `<h3>Habilidades</h3>`
+        for (data of json.abilities) {
+
+            datos.innerHTML += `<p>${data.ability.name} </p>`
+        }
+
     }
-    })
-
-.then(data=>{
-    const img=document.querySelector('#foto')
-    img.src=data.sprites.front_default
-    const datos=document.querySelector('.stats').innerHTML=`
-    <p class="hp">Hp: ${data.stats[0].base_stat}</p>
-    <p class="attack">Attack: ${data.stats[1].base_stat}</p>
-    <p class="defense">Defense: ${data.stats[2].base_stat}</p>
-    <p class="specialAttack">Special Attack: ${data.stats[3].base_stat}</p>
-    <p class="specialDefense">Special Defense: ${data.stats[4].base_stat}</p>
-    <p class="speed">Speed ${data.stats[5].base_stat}</p>`
-    
-    
-})
 }
 
 
-document.getElementById('iniciar').addEventListener('click',()=>{
-    document.querySelector('#iniciar').disabled=true
+document.getElementById('iniciar').addEventListener('click', () => {
+    document.querySelector('#iniciar').disabled = true
+    if(document.getElementById('nombre').value===''){
+        document.querySelector('.stats').innerHTML = `<h3>No digitaste un nombre<h3>`
+        setTimeout(limpiar,2000)
+    }
     buscar()
 })
 
 
-document.getElementById('nuevo').addEventListener('click',()=>{
-    document.querySelector('#iniciar').disabled=false
-    document.querySelector('#foto').src=''
-    document.querySelector('#nombre').value=''
-    document.querySelector('.error').textContent=''
-    const datos=document.querySelector('.stats').innerHTML=''
-})
+document.getElementById('nuevo').addEventListener('click', limpiar)
+function limpiar() {
+    document.querySelector('#iniciar').disabled = false
+    document.querySelector('.foto').src = ''
+    document.querySelector('#nombre').value = ''
+    document.querySelector('.error').textContent = ''
+    const datos = document.querySelector('.stats').innerHTML = ''
+}
